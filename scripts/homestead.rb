@@ -219,5 +219,10 @@ class Homestead
         ]
       end
     end
+
+    # Set up Behat
+    config.vm.provision "shell" do |s|
+        s.path = scriptDir + "/serve-selenium.sh"
+    end
   end
 end
