@@ -1,6 +1,6 @@
-# Laravel Homestead with Selenium and Firefox
+# Laravel Homestead (PHP 7) with Xdebug, Selenium and Firefox
 
-Laravel development environment with additional tools used for testing:
+Laravel development environment with Xdebug and additional tools used for testing:
 
 - Selenium Standalone Server
 - Java RE (required by Selenium)
