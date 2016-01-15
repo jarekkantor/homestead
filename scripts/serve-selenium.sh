@@ -30,4 +30,4 @@ chmod +x /home/vagrant/init-testing
 /home/vagrant/init-testing
 
 # Add script to cron so it runs on start up 
-(crontab -u vagrant -l ; echo "@reboot /home/vagrant/init-testing") | crontab -u vagrant -
+(crontab -u vagrant -l 2>/dev/null; echo "@reboot /home/vagrant/init-testing") | crontab -u vagrant -
