@@ -1,5 +1,10 @@
-# Laravel Homestead
+# Laravel Homestead with Selenium and Firefox
 
-The official Laravel local development environment.
+Laravel development environment with additional tools used for testing:
 
-Official documentation [is located here](http://laravel.com/docs/homestead).
+- Selenium Standalone Server
+- Java RE (required by Selenium)
+- Firefox (headless)
+- X Virtual FrameBuffer (required by Firefox)
+
+The above tools can be used for Behavior-Driven Development (BDD) with Behat + Mink.
