@@ -16,12 +16,12 @@ apt-get -y install firefox
 
 # Download Selenium Standalone Server
 echo "Downloading Selenium Standalone Server"
-wget http://selenium-release.storage.googleapis.com/2.49/selenium-server-standalone-2.49.0.jar -nv -O /home/vagrant/selenium-server-standalone-2.49.0.jar
+wget http://selenium-release.storage.googleapis.com/2.50/selenium-server-standalone-2.50.1.jar -nv -O /home/vagrant/selenium-server-standalone-2.50.1.jar
 
 # Create bash script which will start in background X Virtual FrameBuffer and Selenium Standalone Server
 code="sudo Xvfb :10 -ac &
 export DISPLAY=:10
-java -jar /home/vagrant/selenium-server-standalone-2.49.0.jar &
+java -jar /home/vagrant/selenium-server-standalone-2.50.1.jar &
 "
 
 echo "$code" > "/home/vagrant/init-testing"
@@ -30,7 +30,7 @@ chmod +x /home/vagrant/init-testing
 /home/vagrant/init-testing
 
 # Add script to cron so it runs on start up 
-(crontab -u vagrant -l 2>/dev/null; echo "@reboot /home/vagrant/init-testing") | crontab -u vagrant -
+(crontab -u vagrant -l 2>/dev/null; echo "@reboot ~/init-testing") | crontab -u vagrant -
 
 # Cloning Xdebug
 echo "Cloning Xdebug source code"
