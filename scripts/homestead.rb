@@ -108,6 +108,16 @@ class Homestead
       end
     end
 
+    # Copy User Files Over to VM
+    if settings.include? 'copy'
+      settings["copy"].each do |file|
+        config.vm.provision "file" do |f|
+          f.source = File.expand_path(file["from"])
+          f.destination = file["to"].chomp('/') + "/" + file["from"].split('/').last
+        end
+      end
+    end
+
     # Register All Of The Configured Shared Folders
     if settings.include? 'folders'
       settings["folders"].each do |folder|
@@ -115,6 +125,8 @@ class Homestead
 
         if (folder["type"] == "nfs")
             mount_opts = folder["mount_options"] ? folder["mount_options"] : ['actimeo=1']
+        elsif (folder["type"] == "smb")
+            mount_opts = folder["mount_options"] ? folder["mount_options"] : ['vers=3.02', 'mfsymlinks']
         end
 
         # For b/w compatibility keep separate 'mount_opts', but merge with options
@@ -163,6 +175,14 @@ class Homestead
       end
 
     end
+
+    # Install MariaDB If Necessary
+    if settings.has_key?("mariadb") && settings["mariadb"]
+      config.vm.provision "shell" do |s|
+        s.path = scriptDir + "/install-maria.sh"
+      end
+    end
+
 
     # Configure All Of The Configured Databases
     if settings.has_key?("databases")
