@@ -93,7 +93,7 @@ class Homestead
     if settings.include? 'authorize'
       if File.exists? File.expand_path(settings["authorize"])
         config.vm.provision "shell" do |s|
-          s.inline = "echo $1 | grep -xq \"$1\" /home/vagrant/.ssh/authorized_keys || echo $1 | tee -a /home/vagrant/.ssh/authorized_keys"
+          s.inline = "echo $1 | grep -xq \"$1\" /home/vagrant/.ssh/authorized_keys || echo \"\n$1\" | tee -a /home/vagrant/.ssh/authorized_keys"
           s.args = [File.read(File.expand_path(settings["authorize"]))]
         end
       end
@@ -126,7 +126,7 @@ class Homestead
         mount_opts = []
 
         if (folder["type"] == "nfs")
-            mount_opts = folder["mount_options"] ? folder["mount_options"] : ['actimeo=1']
+            mount_opts = folder["mount_options"] ? folder["mount_options"] : ['actimeo=1', 'nolock']
         elsif (folder["type"] == "smb")
             mount_opts = folder["mount_options"] ? folder["mount_options"] : ['vers=3.02', 'mfsymlinks']
         end
