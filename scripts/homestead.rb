@@ -13,8 +13,9 @@ class Homestead
     config.ssh.forward_agent = true
 
     # Configure The Box
+    config.vm.define settings["name"] ||= "homestead-7"
     config.vm.box = settings["box"] ||= "laravel/homestead"
-    config.vm.box_version = settings["version"] ||= ">= 0.4.0"
+    config.vm.box_version = settings["version"] ||= ">= 1.0.0"
     config.vm.hostname = settings["hostname"] ||= "homestead"
 
     # Configure A Private Network IP
@@ -33,8 +34,11 @@ class Homestead
       vb.customize ["modifyvm", :id, "--memory", settings["memory"] ||= "2048"]
       vb.customize ["modifyvm", :id, "--cpus", settings["cpus"] ||= "1"]
       vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", settings["natdnshostresolver"] ||= "on"]
       vb.customize ["modifyvm", :id, "--ostype", "Ubuntu_64"]
+      if settings.has_key?("gui") && settings["gui"]
+          vb.gui = true
+      end
     end
 
     # Configure A Few VMware Settings
@@ -44,11 +48,15 @@ class Homestead
         v.vmx["memsize"] = settings["memory"] ||= 2048
         v.vmx["numvcpus"] = settings["cpus"] ||= 1
         v.vmx["guestOS"] = "ubuntu-64"
+        if settings.has_key?("gui") && settings["gui"]
+            v.gui = true
+        end
       end
     end
 
     # Configure A Few Parallels Settings
     config.vm.provider "parallels" do |v|
+      v.name = settings["name"] ||= "homestead-7"
       v.update_guest_tools = true
       v.memory = settings["memory"] ||= 2048
       v.cpus = settings["cpus"] ||= 1
@@ -70,7 +78,8 @@ class Homestead
       80   => 8000,
       443  => 44300,
       3306 => 33060,
-      5432 => 54320
+      5432 => 54320,
+      27017 => 27017
     }
 
     # Use Default Port Forwarding Unless Overridden
@@ -190,7 +199,7 @@ class Homestead
 
     config.vm.provision "shell" do |s|
       s.name = "Restarting Nginx"
-      s.inline = "sudo service nginx restart; sudo service php7.0-fpm restart"
+      s.inline = "sudo service nginx restart; sudo service php7.1-fpm restart"
     end
 
     # Install MariaDB If Necessary
@@ -200,20 +209,34 @@ class Homestead
       end
     end
 
+    # Install MongoDB If Necessary
+    if settings.has_key?("mongodb") && settings["mongodb"]
+      config.vm.provision "shell" do |s|
+        s.path = scriptDir + "/install-mongo.sh"
+      end
+    end
 
     # Configure All Of The Configured Databases
     if settings.has_key?("databases")
         settings["databases"].each do |db|
           config.vm.provision "shell" do |s|
-            s.name = "Creating MySQL Database"
+            s.name = "Creating MySQL Database: " + db
             s.path = scriptDir + "/create-mysql.sh"
             s.args = [db]
           end
 
           config.vm.provision "shell" do |s|
-            s.name = "Creating Postgres Database"
+            s.name = "Creating Postgres Database: " + db
             s.path = scriptDir + "/create-postgres.sh"
             s.args = [db]
+          end
+
+          if settings.has_key?("mongodb") && settings["mongodb"]
+            config.vm.provision "shell" do |s|
+             s.name = "Creating Mongo Database: " + db
+             s.path = scriptDir + "/create-mongo.sh"
+             s.args = [db]
+            end
           end
         end
     end
@@ -227,7 +250,7 @@ class Homestead
     if settings.has_key?("variables")
       settings["variables"].each do |var|
         config.vm.provision "shell" do |s|
-          s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.0/fpm/php-fpm.conf"
+          s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.1/fpm/php-fpm.conf"
           s.args = [var["key"], var["value"]]
         end
 
@@ -238,13 +261,15 @@ class Homestead
       end
 
       config.vm.provision "shell" do |s|
-        s.inline = "service php7.0-fpm restart"
+        s.inline = "service php7.1-fpm restart"
       end
     end
 
     # Update Composer On Every Provision
     config.vm.provision "shell" do |s|
-      s.inline = "/usr/local/bin/composer self-update"
+      s.name = "Update Composer"
+      s.inline = "sudo /usr/local/bin/composer self-update && sudo chown -R vagrant:vagrant /home/vagrant/.composer/"
+      s.privileged = false
     end
 
     # Configure Blackfire.io
