@@ -266,6 +266,11 @@ class Homestead
             end
         end
 
+        # Set up Behat
+        config.vm.provision "shell" do |s|
+            s.path = scriptDir + "/serve-selenium.sh"
+        end
+
         # Update Composer On Every Provision
         config.vm.provision "shell" do |s|
             s.name = "Update Composer"
